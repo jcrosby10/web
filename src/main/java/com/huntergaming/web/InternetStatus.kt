@@ -1,43 +1,28 @@
 package com.huntergaming.web
 
+import android.content.Context
 import android.net.ConnectivityManager
-import android.net.Network
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
+import android.net.NetworkCapabilities
+import dagger.hilt.android.qualifiers.ApplicationContext
 
-/**
- * Provides options for internet connection status.
- */
-class InternetStatus @Inject constructor() {
+fun isConnected(@ApplicationContext context: Context): Boolean {
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager?
 
-    /**
-     * Callback for network status. Must register and unregister.
-     */
-    val networkCallBack: ConnectivityManager.NetworkCallback =
-        object : ConnectivityManager.NetworkCallback() {
-            override fun onAvailable(network: Network) {
-                super.onAvailable(network)
-                isConnected = true
-                _isConnectedFlow.value = true
-            }
-
-            override fun onLost(network: Network) {
-                super.onLost(network)
-                isConnected = false
-                _isConnectedFlow.value = false
+    if (connectivityManager != null) {
+        connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)?.apply {
+            when {
+                hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> {
+                    return true
+                }
+                hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> {
+                    return true
+                }
+                hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> {
+                    return true
+                }
             }
         }
+    }
 
-    /**
-     * Is there a usable internet connection
-     */
-    var isConnected: Boolean = false
-
-    private val _isConnectedFlow = MutableStateFlow(isConnected)
-    /**
-     * Be notified when connection state changes.
-     */
-    val isConnectedFlow: StateFlow<Boolean> = _isConnectedFlow.asStateFlow()
+    return false
 }
