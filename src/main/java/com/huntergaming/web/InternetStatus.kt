@@ -26,3 +26,7 @@ fun isConnected(@ApplicationContext context: Context): Boolean {
 
     return false
 }
+
+// injectable
+// register and unregister
+// inject it into Activity to use call register/unregister onpause/onresume
